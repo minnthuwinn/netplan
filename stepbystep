@@ -1,0 +1,69 @@
+#Add new routing table (table id and name)
+vi /etc/iproute2/rt_tables
+<------------------>
+      2       vrf2
+<------------------>
+#netplan config
+vi /etc/netplan/00-installer-config.yaml
+<------------------>
+network:
+  ethernets:
+    eno1:
+       addresses:
+         - 10.59.199.14/24
+    eno2:
+      dhcp4: true
+    eno3:
+      dhcp4: true
+    eno4:
+      dhcp4: true
+    enp130s0f0:
+      dhcp4: false
+    enp130s0f1:
+      dhcp4: false
+  version: 2
+
+  bonds:
+     bond0:
+       interfaces: [enp130s0f0, enp130s0f1]
+       parameters:
+         mode: 802.3ad
+         transmit-hash-policy: layer3+4
+         mii-monitor-interval: 1
+
+  vlans:
+    vlan250:
+      id: 250
+      link: bond0
+      addresses:
+        - 10.59.191.2/30
+        - 103.59.163.14/32
+      routes:
+        - to: default
+          via: 10.59.191.1
+          from: 103.59.163.14
+      nameservers:
+         addresses:
+           - 8.8.8.8
+           - 1.1.1.1
+    vlan251:
+      id: 251
+      link: bond0
+      addresses:
+        - 10.59.191.6/30
+        - 103.59.163.15/32
+      routing-policy:
+        - from: 103.59.163.15
+          table: 2
+        - from: 10.59.191.4/30
+          table: 2
+      routes:
+        - to: 0.0.0.0/0
+          via: 10.59.191.5
+          from: 103.59.163.15
+          table: 2
+      nameservers:
+         addresses:
+           - 8.8.8.8
+           - 1.1.1.1
+<------------------>
